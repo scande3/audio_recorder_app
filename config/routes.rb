@@ -10,6 +10,10 @@ Rails.application.routes.draw do
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
 
   get "recordings" => "recordings#index", as: :recordings_index
+  post "handle_upload" => "recordings#handle_upload", as: :recordings_handle_upload
+
+  root to: 'recordings#home', as: :recordings_home
+
 
   # Defines the root path route ("/")
   # root "posts#index"

@@ -115,6 +115,7 @@ Gemfile.lock
 /public/data/*
 /public/assets/*
 /public/batch_uploads/*
+/public/uploads/*
 /jetty/*
 /solr_conf/*
 /fedora_conf/*

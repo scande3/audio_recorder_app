@@ -6,6 +6,16 @@
     }
 </style>
 
+<script src="https://res.cdn.office.net/teams-js/2.2.0/js/MicrosoftTeams.min.js"
+        integrity="sha384yBjE++eHeBPzIg+IKl9OHFqMbSdrzY2S/LW3qeitc5vqXewEYRWegByWzBN/chRh"
+        crossorigin="anonymous" >
+</script>
+<script>
+    // Initialize the library
+    await microsoftTeams.app.initialize();
+</script>
+
+
 <title>Store Walkthrough App</title>
 <h1>Store Walkthrough App</h1>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
@@ -67,12 +77,51 @@
         audio = newAudio;
     }
 
+    // this function is used to generate random file name
+    function getFileName(fileExtension) {
+        var d = new Date();
+        var year = d.getUTCFullYear();
+        var month = d.getUTCMonth();
+        var date = d.getUTCDate();
+        return 'RecordRTC-' + year + month + date + '-' + getRandomString() + '.' + fileExtension;
+    }
+
     function stopRecordingCallback() {
-        replaceAudio(URL.createObjectURL(recorder.getBlob()));
+        var audioBlob = recorder.getBlob();
+        replaceAudio(URL.createObjectURL(audioBlob));
+        var fileName = getFileName('wav');
+        // we need to upload "File" --- not "Blob"
+        var fileObject = new File([audioBlob], fileName, {
+            type: 'audio/wav'
+        });
+
+        document.getElementById('audio_data').value = fileObject;
+        console.log(document.getElementById('audio_data').value);
+        document.getElementById('submitform').submit();
+        return;
+
+        // From: https://github.com/muaz-khan/RecordRTC/blob/master/simple-demos/php-upload-simple-javascript.html
+        /* uploadToPHPServer(fileObject, function(response, fileDownloadURL) {
+            if(response !== 'ended') {
+                document.getElementById('header').innerHTML = response; // upload progress
+                return;
+            }
+
+            document.getElementById('header').innerHTML = '<a href="' + fileDownloadURL + '" target="_blank">' + fileDownloadURL + '</a>';
+
+            alert('Successfully uploaded recorded blob.');
+
+            // preview uploaded file
+            document.getElementById('your-video-id').srcObject = null;
+            document.getElementById('your-video-id').src = fileDownloadURL;
+
+            // open uploaded file in a new tab
+            window.open(fileDownloadURL);
+        }); */
 
         btnStartRecording.disabled = false;
 
-        setTimeout(function() {
+        /* setTimeout(function() {
             if(!audio.paused) return;
 
             setTimeout(function() {
@@ -89,7 +138,7 @@
 
         if(isSafari) {
             click(btnReleaseMicrophone);
-        }
+        } */
     }
 
     var isEdge = navigator.userAgent.indexOf('Edge') !== -1 && (!!navigator.msSaveOrOpenBlob || !!navigator.msSaveBlob);
@@ -104,6 +153,10 @@
     var btnDownloadRecording = document.getElementById('btn-download-recording');
 
     btnStartRecording.onclick = function() {
+        /* document.getElementById('audio_data').value = "trsting"
+        console.log(document.getElementById('audio_data').value);
+        document.getElementById('submitform').submit();
+        return; */
         this.disabled = true;
         this.style.border = '';
         this.style.fontSize = '';
@@ -267,3 +320,8 @@
 </script>
 
 <footer style="margin-top: 20px;"><small id="send-message"></small></footer>
+
+<%= form_with url: recordings_handle_upload_path, method: :post, html: { id: "submitform" } do |form| %>
+  <%= form.hidden_field :audio_data %>
+  <%= form.submit "Submit" %>
+<% end %>
